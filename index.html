@@ -1,84 +1,60 @@
 <!DOCTYPE html>
+
 <html>
 <head>
   <meta charset="UTF-8">
   <title>Form Absensi</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f2f2f2;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
-    .card {
-      background: white;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      width: 300px;
-    }
-    input, select, button {
-      width: 100%;
-      padding: 10px;
-      margin-top: 10px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-    }
-    button {
-      background: #4CAF50;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #45a049;
-    }
-  </style>
 </head>
-<body>
+<body style="font-family: Arial; background:#f2f2f2; display:flex; justify-content:center; align-items:center; height:100vh;">
 
-<div class="card">
+<div style="background:white; padding:20px; border-radius:10px; width:300px; box-shadow:0 4px 10px rgba(0,0,0,0.1);">
   <h2>Form Absensi</h2>
-  <input type="text" id="nama" placeholder="Nama" required>
 
-  <select id="keterangan">
+  <input type="text" id="nama" placeholder="Nama" style="width:100%; padding:10px; margin-top:10px;">
+
+  <select id="keterangan" style="width:100%; padding:10px; margin-top:10px;">
     <option value="Hadir">Hadir</option>
     <option value="Izin">Izin</option>
     <option value="Sakit">Sakit</option>
     <option value="Alpa">Alpa</option>
   </select>
 
-  <button onclick="kirimData()">Kirim</button>
+  <button onclick="kirimData()" style="width:100%; padding:10px; margin-top:10px; background:#4CAF50; color:white; border:none;">
+    Kirim
+  </button>
+
   <p id="status"></p>
 </div>
 
 <script>
-  const scriptURL = "https://script.google.com/macros/s/AKfycbwnD7AT8x3JfavSMAwo_eqKe_AYvQHDBuXNPqyQW0Nr5MQJP6kNoZBiYSn6eVqutLDM/exec";
+const scriptURL = "https://script.google.com/macros/s/AKfycbwnD7AT8x3JfavSMAwo_eqKe_AYvQHDBuXNPqyQW0Nr5MQJP6kNoZBiYSn6eVqutLDM/exec";
 
-  function kirimData() {
-    const nama = document.getElementById("nama").value;
-    const keterangan = document.getElementById("keterangan").value;
+function kirimData() {
+  const nama = document.getElementById("nama").value;
+  const keterangan = document.getElementById("keterangan").value;
 
-    const formData = new FormData();
-    formData.append("nama", nama);
-    formData.append("keterangan", keterangan);
-
-    fetch(scriptURL, {
-      method: "POST",
-      body: formData
-    })
-    .then(() => {
-      document.getElementById("status").innerText = "Absensi berhasil!";
-      document.getElementById("nama").value = "";
-    })
-    .catch(() => {
-      document.getElementById("status").innerText = "Gagal mengirim data.";
-    });
+  if (!nama) {
+    document.getElementById("status").innerText = "Nama wajib diisi.";
+    return;
   }
-</script>
 
+  const formData = new FormData();
+  formData.append("nama", nama);
+  formData.append("keterangan", keterangan);
+
+  fetch(scriptURL, {
+    method: "POST",
+    body: formData
+  })
+  .then(() => {
+    document.getElementById("status").innerText = "Absensi berhasil!";
+    document.getElementById("nama").value = "";
+  })
+  .catch(() => {
+    document.getElementById("status").innerText = "Gagal mengirim data.";
+  });
+}
+</script>
 
 </body>
 </html>
