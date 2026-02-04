@@ -1,58 +1,205 @@
 <!DOCTYPE html>
 
-<html>
+<html lang="id">
 <head>
   <meta charset="UTF-8">
-  <title>Form Absensi</title>
+  <title>Absensi</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Font modern -->
+
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    body {
+      height: 100vh;
+      background: radial-gradient(circle at top, #0f172a, #020617);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      overflow: hidden;
+    }
+
+    /* Background glow */
+    body::before {
+      content: "";
+      position: absolute;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(59,130,246,0.3), transparent 70%);
+      filter: blur(80px);
+      z-index: 0;
+    }
+
+    .card {
+      position: relative;
+      z-index: 1;
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(16px);
+      border-radius: 22px;
+      padding: 40px;
+      width: 350px;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.7);
+      text-align: center;
+      border: 1px solid rgba(255,255,255,0.08);
+      animation: fadeIn 0.8s ease;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .logo {
+      width: 80px;
+      margin-bottom: 15px;
+      filter: drop-shadow(0 0 10px rgba(59,130,246,0.6));
+    }
+
+    h2 {
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 600;
+      letter-spacing: 2px;
+      margin-bottom: 30px;
+    }
+
+    label {
+      display: block;
+      text-align: left;
+      font-size: 12px;
+      margin-bottom: 6px;
+      opacity: 0.7;
+      letter-spacing: 1px;
+    }
+
+    input {
+      width: 100%;
+      padding: 13px;
+      margin-bottom: 20px;
+      border: none;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.08);
+      color: white;
+      font-size: 14px;
+      text-transform: uppercase;
+      transition: 0.2s;
+    }
+
+    input:focus {
+      outline: none;
+      background: rgba(255,255,255,0.12);
+      box-shadow: 0 0 0 2px #3b82f6, 0 0 20px rgba(59,130,246,0.4);
+    }
+
+    button {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #3b82f6, #2563eb);
+      color: white;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.3s;
+      letter-spacing: 1px;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 15px 30px rgba(59,130,246,0.4);
+    }
+
+    .status {
+      margin-top: 15px;
+      font-size: 13px;
+      opacity: 0.9;
+      min-height: 18px;
+    }
+  </style>
+
 </head>
-<body style="font-family: Arial; background:#f2f2f2; display:flex; justify-content:center; align-items:center; height:100vh;">
+<body>
 
-<div style="background:white; padding:20px; border-radius:10px; width:300px; box-shadow:0 4px 10px rgba(0,0,0,0.1);">
-  <h2>Form Absensi</h2>
+<div class="card">
+  <img src="https://media.discordapp.net/attachments/1208340170546614283/1208340308128178206/imi_white.png?ex=69845f1b&is=69830d9b&hm=d29551c4fbe93630d290b3b2ea37e3f2d9c4c3bd375fa902b6ed2cfd3427621b&=&format=webp&quality=lossless&width=856&height=856" class="logo" alt="Logo">
+  <h2>ABSENSI</h2>
 
-  <input type="text" id="nama" placeholder="Nama" style="width:100%; padding:10px; margin-top:10px;">
+<label>NAMA</label> <input type="text" id="nama" placeholder="MASUKKAN NAMA">
 
-  <select id="keterangan" style="width:100%; padding:10px; margin-top:10px;">
-    <option value="Hadir">Hadir</option>
-    <option value="Izin">Izin</option>
-    <option value="Sakit">Sakit</option>
-    <option value="Alpa">Alpa</option>
-  </select>
+<label>KETERANGAN</label> <input type="text" id="keterangan" placeholder="KETERANGAN">
 
-  <button onclick="kirimData()" style="width:100%; padding:10px; margin-top:10px; background:#4CAF50; color:white; border:none;">
-    Kirim
-  </button>
+<button onclick="kirimAbsensi()">KIRIM ABSENSI</button>
 
-  <p id="status"></p>
+  <div class="status" id="status"></div>
 </div>
 
 <script>
-const scriptURL = "https://script.google.com/macros/s/AKfycbwnD7AT8x3JfavSMAwo_eqKe_AYvQHDBuXNPqyQW0Nr5MQJP6kNoZBiYSn6eVqutLDM/exec";
+const DISCORD_WEBHOOK = "https://discord.com/api/webhooks/1468709001767158022/7rRNygqY17uHWrF4lsPC2JT3rs2pDvYeROIOXrTEorDNVwJCUZ-9h1gf29dmOfZMqM-y";
+const LOGO_URL = "https://media.discordapp.net/attachments/1208340170546614283/1208340308128178206/imi_white.png?ex=69845f1b&is=69830d9b&hm=d29551c4fbe93630d290b3b2ea37e3f2d9c4c3bd375fa902b6ed2cfd3427621b&=&format=webp&quality=lossless&width=856&height=856";
 
-function kirimData() {
-  const nama = document.getElementById("nama").value;
-  const keterangan = document.getElementById("keterangan").value;
+async function kirimAbsensi() {
+  const namaInput = document.getElementById("nama").value;
+  const ketInput = document.getElementById("keterangan").value;
+  const status = document.getElementById("status");
 
-  if (!nama) {
-    document.getElementById("status").innerText = "Nama wajib diisi.";
+  if (!namaInput || !ketInput) {
+    status.textContent = "ISI SEMUA FIELD.";
     return;
   }
 
-  const formData = new FormData();
-  formData.append("nama", nama);
-  formData.append("keterangan", keterangan);
+  const nama = namaInput.toUpperCase();
+  const keterangan = ketInput.toUpperCase();
+  const waktu = new Date().toLocaleString("id-ID");
 
-  fetch(scriptURL, {
-    method: "POST",
-    body: formData
-  })
-  .then(() => {
-    document.getElementById("status").innerText = "Absensi berhasil!";
-    document.getElementById("nama").value = "";
-  })
-  .catch(() => {
-    document.getElementById("status").innerText = "Gagal mengirim data.";
-  });
+  const data = {
+    embeds: [
+      {
+        title: "ABSENSI BARU",
+        color: 3447003,
+        thumbnail: { url: LOGO_URL },
+        fields: [
+          { name: "NAMA", value: nama, inline: false },
+          { name: "KETERANGAN", value: keterangan, inline: false },
+          { name: "WAKTU", value: waktu, inline: false }
+        ],
+        footer: { text: "SISTEM ABSENSI" },
+        timestamp: new Date().toISOString()
+      }
+    ]
+  };
+
+  try {
+    const res = await fetch(DISCORD_WEBHOOK, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data)
+    });
+
+    if (res.ok) {
+      status.textContent = "ABSENSI BERHASIL DIKIRIM.";
+      document.getElementById("nama").value = "";
+      document.getElementById("keterangan").value = "";
+    } else {
+      status.textContent = "GAGAL MENGIRIM.";
+    }
+  } catch {
+    status.textContent = "KONEKSI GAGAL.";
+  }
 }
 </script>
 
