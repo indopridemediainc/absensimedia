@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Form Absensi</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f2f2f2;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .card {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      width: 300px;
+    }
+    input, select, button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    button {
+      background: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #45a049;
+    }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <h2>Form Absensi</h2>
+  <input type="text" id="nama" placeholder="Nama" required>
+
+  <select id="keterangan">
+    <option value="Hadir">Hadir</option>
+    <option value="Izin">Izin</option>
+    <option value="Sakit">Sakit</option>
+    <option value="Alpa">Alpa</option>
+  </select>
+
+  <button onclick="kirimData()">Kirim</button>
+  <p id="status"></p>
+</div>
+
+<script>
+  const scriptURL = "https://script.google.com/macros/s/AKfycbzm759OjSoU-k82bj1nq4GjxWXqG0lDvjkxpLfUrlZBva_hlaCA_0MQjuYlqave4j8o/exec";
+
+  function kirimData() {
+    const nama = document.getElementById("nama").value;
+    const keterangan = document.getElementById("keterangan").value;
+
+    fetch(scriptURL, {
+      method: "POST",
+      body: JSON.stringify({ nama, keterangan })
+    })
+    .then(res => res.json())
+    .then(data => {
+      document.getElementById("status").innerText = "Absensi berhasil!";
+      document.getElementById("nama").value = "";
+    })
+    .catch(err => {
+      document.getElementById("status").innerText = "Gagal mengirim data.";
+    });
+  }
+</script>
+
+</body>
+</html>
