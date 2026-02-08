@@ -1,249 +1,158 @@
 <!DOCTYPE html>
-<html lang="id">
+<html>
 <head>
-<meta charset="UTF-8">
-<title>Sistem Duty</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-
-<style>
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-  font-family: 'Poppins', sans-serif;
-}
-
-body {
-  height: 100vh;
-  background: radial-gradient(circle at top, #0f172a, #020617);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  gap: 20px;
-}
-
-.weekly-time {
-  font-family: 'Orbitron', sans-serif;
-  font-size: 20px;
-  background: rgba(255,255,255,0.05);
-  padding: 15px 25px;
-  border-radius: 14px;
-  backdrop-filter: blur(10px);
-  box-shadow: 0 15px 40px rgba(0,0,0,0.5);
-}
-
-.card {
-  background: rgba(255,255,255,0.05);
-  backdrop-filter: blur(15px);
-  border-radius: 20px;
-  padding: 40px;
-  width: 340px;
-  text-align: center;
-  box-shadow: 0 25px 60px rgba(0,0,0,0.6);
-}
-
-h2 {
-  font-family: 'Orbitron', sans-serif;
-  margin-bottom: 25px;
-}
-
-input {
-  width: 100%;
-  padding: 12px;
-  margin-bottom: 15px;
-  border: none;
-  border-radius: 10px;
-  background: rgba(255,255,255,0.1);
-  color: white;
-  text-transform: uppercase;
-}
-
-button {
-  width: 100%;
-  padding: 13px;
-  border: none;
-  border-radius: 10px;
-  color: white;
-  font-weight: 600;
-  cursor: pointer;
-  margin-top: 10px;
-}
-
-.on {
-  background: linear-gradient(135deg,#22c55e,#16a34a);
-}
-
-.off {
-  background: linear-gradient(135deg,#ef4444,#dc2626);
-}
-
-.logout {
-  background: linear-gradient(135deg,#64748b,#475569);
-}
-
-.status {
-  margin-top: 15px;
-  font-size: 13px;
-}
-</style>
+    <meta charset="UTF-8">
+    <title>Absensi User</title>
+    <style>
+        body {
+            font-family: Arial;
+            background: #0f172a;
+            color: white;
+            text-align: center;
+            padding: 40px;
+        }
+        .card {
+            background: #1e293b;
+            padding: 25px;
+            border-radius: 12px;
+            display: inline-block;
+            width: 300px;
+        }
+        input {
+            padding: 10px;
+            width: 90%;
+            margin: 10px 0;
+            border-radius: 6px;
+            border: none;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 8px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            cursor: pointer;
+        }
+        .on { background: #22c55e; }
+        .off { background: #ef4444; }
+        .logout { background: #64748b; }
+        .week {
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+    </style>
 </head>
-
 <body>
 
-<div class="weekly-time" id="weeklyTime">
-  WAKTU MINGGU INI: 00:00:00
-</div>
+<h2>Absensi Karyawan</h2>
+
+<div class="week" id="weekTime"></div>
 
 <div class="card" id="loginCard">
-  <h2>LOGIN DUTY</h2>
-  <input type="text" id="nama" placeholder="MASUKKAN NAMA / ID">
-  <button class="on" onclick="login()">LOGIN</button>
-  <div class="status" id="loginStatus"></div>
+    <h3>Login</h3>
+    <input type="text" id="username" placeholder="Masukkan nama">
+    <button onclick="login()">Login</button>
 </div>
 
-<div class="card" id="dutyCard" style="display:none;">
-  <h2 id="welcomeText">DUTY PANEL</h2>
-  <button class="on" onclick="kirimDuty('ON DUTY')">ON DUTY</button>
-  <button class="off" onclick="kirimDuty('OFF DUTY')">OFF DUTY</button>
-  <button class="logout" onclick="logout()">LOGOUT</button>
-  <div class="status" id="dutyStatus"></div>
+<div class="card" id="absenCard" style="display:none;">
+    <h3 id="welcome"></h3>
+    <button class="on" onclick="onDuty()">ON DUTY</button>
+    <button class="off" onclick="offDuty()">OFF DUTY</button>
+    <br>
+    <button class="logout" onclick="logout()">Logout</button>
 </div>
 
 <script>
-const DISCORD_WEBHOOK = "PASTE_WEBHOOK_KAMU_DISINI";
+const API = "PASTE_URL_WORKER_KAMU_DI_SINI";
+
+let user = localStorage.getItem("user");
+let logs = JSON.parse(localStorage.getItem("logs") || "[]");
+
+function saveLogs() {
+    localStorage.setItem("logs", JSON.stringify(logs));
+}
 
 function login() {
-  const nama = document.getElementById("nama").value.trim().toUpperCase();
-  const status = document.getElementById("loginStatus");
+    const name = document.getElementById("username").value;
+    if (!name) return alert("Masukkan nama");
 
-  if (!nama) {
-    status.textContent = "MASUKKAN NAMA / ID.";
-    status.style.color = "#f87171";
-    return;
-  }
-
-  localStorage.setItem("dutyUser", nama);
-  showDutyPanel();
+    localStorage.setItem("user", name);
+    location.reload();
 }
 
 function logout() {
-  localStorage.removeItem("dutyUser");
-  location.reload();
+    localStorage.removeItem("user");
+    location.reload();
 }
 
-function showDutyPanel() {
-  const nama = localStorage.getItem("dutyUser");
-  if (!nama) return;
-
-  document.getElementById("loginCard").style.display = "none";
-  document.getElementById("dutyCard").style.display = "block";
-  document.getElementById("welcomeText").textContent = `HALO, ${nama}`;
-}
-
-function getWeekKey() {
-  const now = new Date();
-  const firstJan = new Date(now.getFullYear(), 0, 1);
-  const week = Math.ceil((((now - firstJan) / 86400000) + firstJan.getDay() + 1) / 7);
-  return `${now.getFullYear()}-W${week}`;
-}
-
-function updateWeeklyDisplay() {
-  const weekKey = getWeekKey();
-  const total = localStorage.getItem("time_" + weekKey) || 0;
-  document.getElementById("weeklyTime").textContent =
-    "WAKTU MINGGU INI: " + formatTime(total);
-}
-
-function formatTime(ms) {
-  const totalSec = Math.floor(ms / 1000);
-  const h = String(Math.floor(totalSec / 3600)).padStart(2, "0");
-  const m = String(Math.floor((totalSec % 3600) / 60)).padStart(2, "0");
-  const s = String(totalSec % 60).padStart(2, "0");
-  return `${h}:${m}:${s}`;
-}
-
-async function kirimDuty(statusDuty) {
-  const nama = localStorage.getItem("dutyUser");
-  const status = document.getElementById("dutyStatus");
-  const buttons = document.querySelectorAll("#dutyCard button");
-
-  let kegiatan = "-";
-
-  if (statusDuty === "OFF DUTY") {
-    kegiatan = prompt("Kegiatan hari ini apa?");
-    if (kegiatan === null || kegiatan.trim() === "") return;
-    kegiatan = kegiatan.toUpperCase();
-  }
-
-  buttons.forEach(b => b.disabled = true);
-  status.textContent = "MENGIRIM...";
-  status.style.color = "#60a5fa";
-
-  const now = Date.now();
-  const weekKey = getWeekKey();
-
-  if (statusDuty === "ON DUTY") {
-    localStorage.setItem("startTime", now);
-  }
-
-  if (statusDuty === "OFF DUTY") {
-    const start = localStorage.getItem("startTime");
-    if (start) {
-      const duration = now - start;
-      const current = parseInt(localStorage.getItem("time_" + weekKey) || 0);
-      localStorage.setItem("time_" + weekKey, current + duration);
-      localStorage.removeItem("startTime");
+function showUI() {
+    if (user) {
+        document.getElementById("loginCard").style.display = "none";
+        document.getElementById("absenCard").style.display = "block";
+        document.getElementById("welcome").innerText = "Halo, " + user;
     }
-  }
+}
 
-  updateWeeklyDisplay();
+async function sendToDiscord(status, keterangan="") {
+    const waktu = new Date().toLocaleString();
 
-  const waktu = new Date().toLocaleString("id-ID", {
-    dateStyle: "full",
-    timeStyle: "medium"
-  });
+    await fetch(API, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+            nama: user,
+            status,
+            keterangan,
+            waktu
+        })
+    });
+}
 
-  const warna = statusDuty === "ON DUTY" ? 5763719 : 15548997;
+function onDuty() {
+    const now = Date.now();
+    logs.push({ type: "on", time: now });
+    saveLogs();
+    sendToDiscord("ON DUTY");
+    updateWeekTime();
+    alert("ON DUTY berhasil");
+}
 
-  const data = {
-    embeds: [
-      {
-        title: statusDuty,
-        color: warna,
-        fields: [
-          { name: "NAMA", value: nama },
-          { name: "STATUS", value: statusDuty },
-          { name: "KEGIATAN", value: kegiatan },
-          { name: "WAKTU", value: waktu }
-        ],
-        timestamp: new Date().toISOString()
-      }
-    ]
-  };
+function offDuty() {
+    const ket = prompt("Kegiatan hari ini?");
+    const now = Date.now();
+    logs.push({ type: "off", time: now });
+    saveLogs();
+    sendToDiscord("OFF DUTY", ket);
+    updateWeekTime();
+    alert("OFF DUTY berhasil");
+}
 
-  try {
-    await fetch(DISCORD_WEBHOOK, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data)
+function updateWeekTime() {
+    const weekAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
+    let total = 0;
+    let lastOn = null;
+
+    logs.forEach(log => {
+        if (log.time < weekAgo) return;
+
+        if (log.type === "on") {
+            lastOn = log.time;
+        }
+        if (log.type === "off" && lastOn) {
+            total += log.time - lastOn;
+            lastOn = null;
+        }
     });
 
-    status.textContent = `${statusDuty} BERHASIL.`;
-    status.style.color = "#4ade80";
-  } catch {
-    status.textContent = "KONEKSI GAGAL.";
-    status.style.color = "#f87171";
-  }
+    const hours = Math.floor(total / (1000 * 60 * 60));
+    const mins = Math.floor((total / (1000 * 60)) % 60);
 
-  buttons.forEach(b => b.disabled = false);
+    document.getElementById("weekTime").innerText =
+        "Total kerja minggu ini: " + hours + " jam " + mins + " menit";
 }
 
-showDutyPanel();
-updateWeeklyDisplay();
+showUI();
+updateWeekTime();
 </script>
 
 </body>
