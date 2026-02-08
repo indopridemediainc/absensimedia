@@ -1,137 +1,217 @@
 <!DOCTYPE html>
-<html lang="id">
+
+<html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dashboard Jam Kerja</title>
+<title>Absensi Karyawan</title>
 
 <style>
 body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background: linear-gradient(135deg, #0f172a, #020617);
+    font-family: Arial;
+    background: linear-gradient(135deg,#0f172a,#020617);
     color: white;
+    text-align: center;
+    padding: 40px;
 }
 
 .container {
-    max-width: 900px;
+    max-width: 1000px;
     margin: auto;
-    padding: 20px;
-}
-
-.header {
-    text-align: center;
-    margin-bottom: 20px;
-}
-
-.header h1 {
-    margin: 0;
 }
 
 .card {
     background: #1e293b;
+    padding: 25px;
     border-radius: 14px;
-    padding: 20px;
-    margin-bottom: 20px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    display: inline-block;
+    width: 300px;
+    margin: 10px;
+    vertical-align: top;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.4);
 }
 
-.card h2 {
-    margin-top: 0;
-    font-size: 20px;
-    border-bottom: 1px solid #334155;
-    padding-bottom: 10px;
+input {
+    padding: 12px;
+    width: 90%;
+    margin: 10px 0;
+    border-radius: 8px;
+    border: none;
+    font-size: 15px;
 }
+
+button {
+    padding: 12px 20px;
+    margin: 8px;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.on { background: #22c55e; color:white; }
+.off { background: #ef4444; color:white; }
+.logout { background: #64748b; color:white; }
 
 .history-item {
-    padding: 12px;
-    border-bottom: 1px solid #334155;
-    display: flex;
-    justify-content: space-between;
-}
-
-.history-item:last-child {
-    border-bottom: none;
-}
-
-.total-hours {
-    font-size: 32px;
-    font-weight: bold;
-    color: #22c55e;
-    text-align: center;
-    margin-top: 10px;
-}
-
-.empty {
-    text-align: center;
-    opacity: 0.6;
-    padding: 10px;
+    background: #0f172a;
+    padding: 8px;
+    margin: 6px 0;
+    border-radius: 6px;
+    font-size: 14px;
 }
 </style>
-</head>
 
+</head>
 <body>
 
 <div class="container">
 
-    <div class="header">
-        <h1>Dashboard Jam Kerja</h1>
-    </div>
+<h2>Absensi Karyawan</h2>
 
-    <!-- CARD TOTAL JAM -->
-    <div class="card">
-        <h2>Total Jam Kerja</h2>
-        <div class="total-hours" id="totalJam">
-            0 Jam
-        </div>
-    </div>
+<!-- LOGIN CARD -->
 
-    <!-- CARD HISTORY -->
-    <div class="card">
-        <h2>History Jam Kerja</h2>
-        <div id="historyContainer" class="empty">
-            Belum ada data
-        </div>
-    </div>
+<div class="card" id="loginCard">
+    <h3>Login</h3>
+    <input type="text" id="username" placeholder="Masukkan nama">
+    <br>
+    <button onclick="login()">Masuk</button>
+</div>
 
+<!-- MAIN DASHBOARD -->
+
+<div id="mainUI" style="display:none;">
+
+```
+<!-- CARD ABSENSI -->
+<div class="card">
+    <h3 id="welcome"></h3>
+    <button class="on" onclick="onDuty()">ON DUTY</button>
+    <button class="off" onclick="offDuty()">OFF DUTY</button>
+    <br>
+    <button class="logout" onclick="logout()">Logout</button>
+</div>
+
+<!-- TOTAL JAM -->
+<div class="card">
+    <h3>Total Jam Kerja</hh3>
+    <h2 id="totalHours">0 jam</h2>
+</div>
+
+<!-- HISTORY -->
+<div class="card">
+    <h3>History Jam Kerja</h3>
+    <div id="historyList">Belum ada data</div>
+</div>
+```
+
+</div>
 </div>
 
 <script>
-// Contoh data (bisa diganti dari Spreadsheet/API)
-const historyData = [
-    { tanggal: "2026-02-01", jam: 8 },
-    { tanggal: "2026-02-02", jam: 7 },
-    { tanggal: "2026-02-03", jam: 6 }
-];
+const API = "https://script.google.com/macros/s/AKfycbx3l8XlVqeskN4Y10bIwxp4kYFGfsqGxc3u_DWUgLNA-RUwwD_DSDMdbKM-HtlTG5sC/exec";
 
-function tampilkanHistory() {
-    const container = document.getElementById("historyContainer");
-    const totalJamEl = document.getElementById("totalJam");
+let user = localStorage.getItem("user");
+let logs = JSON.parse(localStorage.getItem("logs") || "[]");
 
-    if (!historyData.length) {
-        container.innerHTML = "Belum ada data";
-        return;
-    }
-
-    container.innerHTML = "";
-    let total = 0;
-
-    historyData.forEach(item => {
-        total += item.jam;
-
-        const div = document.createElement("div");
-        div.className = "history-item";
-        div.innerHTML = `
-            <span>${item.tanggal}</span>
-            <strong>${item.jam} Jam</strong>
-        `;
-        container.appendChild(div);
-    });
-
-    totalJamEl.textContent = total + " Jam";
+function saveLogs() {
+    localStorage.setItem("logs", JSON.stringify(logs));
 }
 
-tampilkanHistory();
+function login() {
+    const name = document.getElementById("username").value.trim();
+    if (!name) return alert("Masukkan nama");
+
+    localStorage.setItem("user", name.toUpperCase());
+    location.reload();
+}
+
+function logout() {
+    localStorage.removeItem("user");
+    location.reload();
+}
+
+function showUI() {
+    if (user) {
+        document.getElementById("loginCard").style.display = "none";
+        document.getElementById("mainUI").style.display = "block";
+        document.getElementById("welcome").innerText = "Halo, " + user;
+    }
+}
+
+async function sendToSpreadsheet(status, keterangan="") {
+    const waktu = new Date().toLocaleString();
+
+    await fetch(API, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+            nama: user,
+            status,
+            keterangan,
+            waktu
+        })
+    });
+}
+
+function onDuty() {
+    const now = Date.now();
+    logs.push({ type: "on", time: now });
+    saveLogs();
+    sendToSpreadsheet("ON DUTY");
+    updateStats();
+    alert("ON DUTY berhasil");
+}
+
+function offDuty() {
+    const ket = prompt("Kegiatan hari ini?");
+    const now = Date.now();
+    logs.push({ type: "off", time: now, ket });
+    saveLogs();
+    sendToSpreadsheet("OFF DUTY", ket);
+    updateStats();
+    alert("OFF DUTY berhasil");
+}
+
+function updateStats() {
+    const historyDiv = document.getElementById("historyList");
+    let total = 0;
+    let lastOn = null;
+    historyDiv.innerHTML = "";
+
+    logs.forEach(log => {
+        if (log.type === "on") {
+            lastOn = log.time;
+        }
+        if (log.type === "off" && lastOn) {
+            const dur = log.time - lastOn;
+            total += dur;
+
+            const hours = Math.floor(dur / (1000*60*60));
+            const mins = Math.floor((dur/(1000*60))%60);
+
+            const div = document.createElement("div");
+            div.className = "history-item";
+            div.textContent = hours + " jam " + mins + " menit";
+            historyDiv.appendChild(div);
+
+            lastOn = null;
+        }
+    });
+
+    if (historyDiv.innerHTML === "") {
+        historyDiv.textContent = "Belum ada data";
+    }
+
+    const totalHours = Math.floor(total / (1000*60*60));
+    const totalMins = Math.floor((total/(1000*60))%60);
+
+    document.getElementById("totalHours").textContent =
+        totalHours + " jam " + totalMins + " menit";
+}
+
+showUI();
+updateStats();
 </script>
 
 </body>
