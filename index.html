@@ -73,10 +73,10 @@ function saveLogs() {
 }
 
 function login() {
-    const name = document.getElementById("username").value;
+    const name = document.getElementById("username").value.trim();
     if (!name) return alert("Masukkan nama");
 
-    localStorage.setItem("user", name);
+    localStorage.setItem("user", name.toUpperCase());
     location.reload();
 }
 
@@ -93,36 +93,45 @@ function showUI() {
     }
 }
 
-async function sendToDiscord(status, keterangan="") {
-    const waktu = new Date().toLocaleString();
+async function sendData(status, keterangan="") {
+    const waktu = new Date().toLocaleString("id-ID");
 
-    await fetch(API, {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({
-            nama: user,
-            status,
-            keterangan,
-            waktu
-        })
-    });
+    try {
+        await fetch(API, {
+            method: "POST",
+            mode: "no-cors", // penting untuk Apps Script
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                nama: user,
+                status: status,
+                keterangan: keterangan,
+                waktu: waktu
+            })
+        });
+    } catch (err) {
+        console.error("Gagal kirim:", err);
+    }
 }
 
 function onDuty() {
     const now = Date.now();
     logs.push({ type: "on", time: now });
     saveLogs();
-    sendToDiscord("ON DUTY");
+    sendData("ON DUTY");
     updateWeekTime();
     alert("ON DUTY berhasil");
 }
 
 function offDuty() {
     const ket = prompt("Kegiatan hari ini?");
+    if (ket === null) return;
+
     const now = Date.now();
     logs.push({ type: "off", time: now });
     saveLogs();
-    sendToDiscord("OFF DUTY", ket);
+    sendData("OFF DUTY", ket.toUpperCase());
     updateWeekTime();
     alert("OFF DUTY berhasil");
 }
@@ -157,4 +166,3 @@ updateWeekTime();
 
 </body>
 </html>
-
