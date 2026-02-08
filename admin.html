@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard</title>
+    <style>
+        body {
+            font-family: Arial;
+            background: #0f172a;
+            color: white;
+            text-align: center;
+            padding: 30px;
+        }
+        table {
+            margin: auto;
+            width: 80%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #334155;
+            padding: 8px;
+        }
+        th {
+            background: #1e293b;
+        }
+    </style>
+</head>
+<body>
+
+<h2>Dashboard Admin</h2>
+
+<table id="table">
+    <tr>
+        <th>Nama</th>
+        <th>Type</th>
+        <th>Waktu</th>
+    </tr>
+</table>
+
+<script>
+const logs = JSON.parse(localStorage.getItem("logs") || "[]");
+const user = localStorage.getItem("user");
+
+const table = document.getElementById("table");
+
+logs.forEach(log => {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+        <td>${user}</td>
+        <td>${log.type.toUpperCase()}</td>
+        <td>${new Date(log.time).toLocaleString()}</td>
+    `;
+    table.appendChild(row);
+});
+</script>
+
+</body>
+</html>
