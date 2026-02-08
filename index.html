@@ -1,128 +1,83 @@
 <!DOCTYPE html>
-
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Absensi Karyawan</title>
-
+<title>Absensi</title>
 <style>
 body {
     font-family: Arial;
-    background: linear-gradient(135deg,#0f172a,#020617);
+    background: #0f172a;
     color: white;
     text-align: center;
-    padding: 40px;
+    padding: 30px;
 }
-
 .container {
-    max-width: 1000px;
-    margin: auto;
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
 }
-
 .card {
     background: #1e293b;
-    padding: 25px;
-    border-radius: 14px;
-    display: inline-block;
-    width: 300px;
-    margin: 10px;
-    vertical-align: top;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+    padding: 20px;
+    border-radius: 12px;
+    width: 320px;
 }
-
-input {
-    padding: 12px;
-    width: 90%;
-    margin: 10px 0;
-    border-radius: 8px;
-    border: none;
-    font-size: 15px;
-}
-
 button {
-    padding: 12px 20px;
-    margin: 8px;
+    padding: 10px 15px;
+    margin: 5px;
     border: none;
-    border-radius: 10px;
-    font-size: 15px;
+    border-radius: 8px;
     cursor: pointer;
-    font-weight: bold;
 }
-
-.on { background: #22c55e; color:white; }
-.off { background: #ef4444; color:white; }
-.logout { background: #64748b; color:white; }
-
-.history-item {
-    background: #0f172a;
-    padding: 8px;
-    margin: 6px 0;
-    border-radius: 6px;
-    font-size: 14px;
+.on { background: #22c55e; }
+.off { background: #ef4444; }
+.logout { background: #64748b; }
+table {
+    width: 100%;
+    font-size: 13px;
 }
+td { padding: 4px; }
 </style>
-
 </head>
 <body>
 
-<div class="container">
+<h2>ABSENSI STAFF IMI</h2>
 
-<h2>Absensi Karyawan</h2>
-
-<!-- LOGIN CARD -->
-
-<div class="card" id="loginCard">
+<div id="loginCard" class="card">
     <h3>Login</h3>
     <input type="text" id="username" placeholder="Masukkan nama">
-    <br>
-    <button onclick="login()">Masuk</button>
+    <br><br>
+    <button onclick="login()">Login</button>
 </div>
 
-<!-- MAIN DASHBOARD -->
+<div class="container" id="mainUI" style="display:none;">
 
-<div id="mainUI" style="display:none;">
+    <div class="card">
+        <h3 id="welcome"></h3>
+        <button class="on" onclick="onDuty()">ON DUTY</button>
+        <button class="off" onclick="offDuty()">OFF DUTY</button>
+        <br><br>
+        <button class="logout" onclick="logout()">Logout</button>
+        <hr>
+        <div id="totalTime">Total minggu ini: 0 jam</div>
+    </div>
 
-```
-<!-- CARD ABSENSI -->
-<div class="card">
-    <h3 id="welcome"></h3>
-    <button class="on" onclick="onDuty()">ON DUTY</button>
-    <button class="off" onclick="offDuty()">OFF DUTY</button>
-    <br>
-    <button class="logout" onclick="logout()">Logout</button>
-</div>
+    <div class="card">
+        <h3>History</h3>
+        <table id="historyTable"></table>
+    </div>
 
-<!-- TOTAL JAM -->
-<div class="card">
-    <h3>Total Jam Kerja</hh3>
-    <h2 id="totalHours">0 jam</h2>
-</div>
-
-<!-- HISTORY -->
-<div class="card">
-    <h3>History Jam Kerja</h3>
-    <div id="historyList">Belum ada data</div>
-</div>
-```
-
-</div>
 </div>
 
 <script>
-const API = "https://script.google.com/macros/s/AKfycbx3l8XlVqeskN4Y10bIwxp4kYFGfsqGxc3u_DWUgLNA-RUwwD_DSDMdbKM-HtlTG5sC/exec";
-
+const API_URL = "https://script.google.com/macros/s/AKfycbx3l8XlVqeskN4Y10bIwxp4kYFGfsqGxc3u_DWUgLNA-RUwwD_DSDMdbKM-HtlTG5sC/exec";
 let user = localStorage.getItem("user");
-let logs = JSON.parse(localStorage.getItem("logs") || "[]");
-
-function saveLogs() {
-    localStorage.setItem("logs", JSON.stringify(logs));
-}
 
 function login() {
-    const name = document.getElementById("username").value.trim();
+    const name = document.getElementById("username").value;
     if (!name) return alert("Masukkan nama");
-
-    localStorage.setItem("user", name.toUpperCase());
+    localStorage.setItem("user", name);
     location.reload();
 }
 
@@ -134,85 +89,76 @@ function logout() {
 function showUI() {
     if (user) {
         document.getElementById("loginCard").style.display = "none";
-        document.getElementById("mainUI").style.display = "block";
+        document.getElementById("mainUI").style.display = "flex";
         document.getElementById("welcome").innerText = "Halo, " + user;
+        loadHistory();
     }
 }
 
-async function sendToSpreadsheet(status, keterangan="") {
-    const waktu = new Date().toLocaleString();
-
-    await fetch(API, {
+async function send(status, ket="") {
+    await fetch(API_URL, {
         method: "POST",
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify({
             nama: user,
             status,
-            keterangan,
-            waktu
+            keterangan: ket
         })
     });
 }
 
 function onDuty() {
-    const now = Date.now();
-    logs.push({ type: "on", time: now });
-    saveLogs();
-    sendToSpreadsheet("ON DUTY");
-    updateStats();
+    send("ON DUTY");
     alert("ON DUTY berhasil");
+    loadHistory();
 }
 
 function offDuty() {
     const ket = prompt("Kegiatan hari ini?");
-    const now = Date.now();
-    logs.push({ type: "off", time: now, ket });
-    saveLogs();
-    sendToSpreadsheet("OFF DUTY", ket);
-    updateStats();
+    send("OFF DUTY", ket);
     alert("OFF DUTY berhasil");
+    loadHistory();
 }
 
-function updateStats() {
-    const historyDiv = document.getElementById("historyList");
+async function loadHistory() {
+    const res = await fetch(API_URL);
+    const data = await res.json();
+
+    const userLogs = data.filter(d => d.nama === user);
+    const table = document.getElementById("historyTable");
+    table.innerHTML = "";
+
     let total = 0;
     let lastOn = null;
-    historyDiv.innerHTML = "";
+    const weekAgo = Date.now() - (7*24*60*60*1000);
 
-    logs.forEach(log => {
-        if (log.type === "on") {
-            lastOn = log.time;
-        }
-        if (log.type === "off" && lastOn) {
-            const dur = log.time - lastOn;
-            total += dur;
+    userLogs.forEach(log => {
+        const time = new Date(log.waktu).getTime();
 
-            const hours = Math.floor(dur / (1000*60*60));
-            const mins = Math.floor((dur/(1000*60))%60);
+        table.innerHTML += `
+            <tr>
+                <td>${new Date(log.waktu).toLocaleString()}</td>
+                <td>${log.status}</td>
+            </tr>
+        `;
 
-            const div = document.createElement("div");
-            div.className = "history-item";
-            div.textContent = hours + " jam " + mins + " menit";
-            historyDiv.appendChild(div);
+        if (time < weekAgo) return;
 
+        if (log.status === "ON DUTY") lastOn = time;
+        if (log.status === "OFF DUTY" && lastOn) {
+            total += time - lastOn;
             lastOn = null;
         }
     });
 
-    if (historyDiv.innerHTML === "") {
-        historyDiv.textContent = "Belum ada data";
-    }
+    const hours = Math.floor(total / 3600000);
+    const mins = Math.floor((total % 3600000) / 60000);
 
-    const totalHours = Math.floor(total / (1000*60*60));
-    const totalMins = Math.floor((total/(1000*60))%60);
-
-    document.getElementById("totalHours").textContent =
-        totalHours + " jam " + totalMins + " menit";
+    document.getElementById("totalTime").innerText =
+        `Total minggu ini: ${hours} jam ${mins} menit`;
 }
 
 showUI();
-updateStats();
 </script>
-
 </body>
 </html>
