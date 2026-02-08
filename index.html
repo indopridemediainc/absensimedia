@@ -1,167 +1,137 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <title>Absensi User</title>
-    <style>
-        body {
-            font-family: Arial;
-            background: #0f172a;
-            color: white;
-            text-align: center;
-            padding: 40px;
-        }
-        .card {
-            background: #1e293b;
-            padding: 25px;
-            border-radius: 12px;
-            display: inline-block;
-            width: 300px;
-        }
-        input {
-            padding: 10px;
-            width: 90%;
-            margin: 10px 0;
-            border-radius: 6px;
-            border: none;
-        }
-        button {
-            padding: 10px 20px;
-            margin: 8px;
-            border: none;
-            border-radius: 8px;
-            font-size: 15px;
-            cursor: pointer;
-        }
-        .on { background: #22c55e; }
-        .off { background: #ef4444; }
-        .logout { background: #64748b; }
-        .week {
-            margin-bottom: 15px;
-            font-size: 18px;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Jam Kerja</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #0f172a, #020617);
+    color: white;
+}
+
+.container {
+    max-width: 900px;
+    margin: auto;
+    padding: 20px;
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.header h1 {
+    margin: 0;
+}
+
+.card {
+    background: #1e293b;
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+}
+
+.card h2 {
+    margin-top: 0;
+    font-size: 20px;
+    border-bottom: 1px solid #334155;
+    padding-bottom: 10px;
+}
+
+.history-item {
+    padding: 12px;
+    border-bottom: 1px solid #334155;
+    display: flex;
+    justify-content: space-between;
+}
+
+.history-item:last-child {
+    border-bottom: none;
+}
+
+.total-hours {
+    font-size: 32px;
+    font-weight: bold;
+    color: #22c55e;
+    text-align: center;
+    margin-top: 10px;
+}
+
+.empty {
+    text-align: center;
+    opacity: 0.6;
+    padding: 10px;
+}
+</style>
 </head>
+
 <body>
 
-<h2>Absensi Karyawan</h2>
+<div class="container">
 
-<div class="week" id="weekTime"></div>
+    <div class="header">
+        <h1>Dashboard Jam Kerja</h1>
+    </div>
 
-<div class="card" id="loginCard">
-    <h3>Login</h3>
-    <input type="text" id="username" placeholder="Masukkan nama">
-    <button onclick="login()">Login</button>
-</div>
+    <!-- CARD TOTAL JAM -->
+    <div class="card">
+        <h2>Total Jam Kerja</h2>
+        <div class="total-hours" id="totalJam">
+            0 Jam
+        </div>
+    </div>
 
-<div class="card" id="absenCard" style="display:none;">
-    <h3 id="welcome"></h3>
-    <button class="on" onclick="onDuty()">ON DUTY</button>
-    <button class="off" onclick="offDuty()">OFF DUTY</button>
-    <br>
-    <button class="logout" onclick="logout()">Logout</button>
+    <!-- CARD HISTORY -->
+    <div class="card">
+        <h2>History Jam Kerja</h2>
+        <div id="historyContainer" class="empty">
+            Belum ada data
+        </div>
+    </div>
+
 </div>
 
 <script>
-const API = "https://script.google.com/macros/s/AKfycbx3l8XlVqeskN4Y10bIwxp4kYFGfsqGxc3u_DWUgLNA-RUwwD_DSDMdbKM-HtlTG5sC/exec";
+// Contoh data (bisa diganti dari Spreadsheet/API)
+const historyData = [
+    { tanggal: "2026-02-01", jam: 8 },
+    { tanggal: "2026-02-02", jam: 7 },
+    { tanggal: "2026-02-03", jam: 6 }
+];
 
-let user = localStorage.getItem("user");
-let logs = JSON.parse(localStorage.getItem("logs") || "[]");
+function tampilkanHistory() {
+    const container = document.getElementById("historyContainer");
+    const totalJamEl = document.getElementById("totalJam");
 
-function saveLogs() {
-    localStorage.setItem("logs", JSON.stringify(logs));
-}
-
-function login() {
-    const name = document.getElementById("username").value.trim();
-    if (!name) return alert("Masukkan nama");
-
-    localStorage.setItem("user", name.toUpperCase());
-    location.reload();
-}
-
-function logout() {
-    localStorage.removeItem("user");
-    location.reload();
-}
-
-function showUI() {
-    if (user) {
-        document.getElementById("loginCard").style.display = "none";
-        document.getElementById("absenCard").style.display = "block";
-        document.getElementById("welcome").innerText = "Halo, " + user;
+    if (!historyData.length) {
+        container.innerHTML = "Belum ada data";
+        return;
     }
-}
 
-async function sendData(status, keterangan="") {
-    const waktu = new Date().toLocaleString("id-ID");
-
-    try {
-        await fetch(API, {
-            method: "POST",
-            mode: "no-cors", // penting untuk Apps Script
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                nama: user,
-                status: status,
-                keterangan: keterangan,
-                waktu: waktu
-            })
-        });
-    } catch (err) {
-        console.error("Gagal kirim:", err);
-    }
-}
-
-function onDuty() {
-    const now = Date.now();
-    logs.push({ type: "on", time: now });
-    saveLogs();
-    sendData("ON DUTY");
-    updateWeekTime();
-    alert("ON DUTY berhasil");
-}
-
-function offDuty() {
-    const ket = prompt("Kegiatan hari ini?");
-    if (ket === null) return;
-
-    const now = Date.now();
-    logs.push({ type: "off", time: now });
-    saveLogs();
-    sendData("OFF DUTY", ket.toUpperCase());
-    updateWeekTime();
-    alert("OFF DUTY berhasil");
-}
-
-function updateWeekTime() {
-    const weekAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
+    container.innerHTML = "";
     let total = 0;
-    let lastOn = null;
 
-    logs.forEach(log => {
-        if (log.time < weekAgo) return;
+    historyData.forEach(item => {
+        total += item.jam;
 
-        if (log.type === "on") {
-            lastOn = log.time;
-        }
-        if (log.type === "off" && lastOn) {
-            total += log.time - lastOn;
-            lastOn = null;
-        }
+        const div = document.createElement("div");
+        div.className = "history-item";
+        div.innerHTML = `
+            <span>${item.tanggal}</span>
+            <strong>${item.jam} Jam</strong>
+        `;
+        container.appendChild(div);
     });
 
-    const hours = Math.floor(total / (1000 * 60 * 60));
-    const mins = Math.floor((total / (1000 * 60)) % 60);
-
-    document.getElementById("weekTime").innerText =
-        "Total kerja minggu ini: " + hours + " jam " + mins + " menit";
+    totalJamEl.textContent = total + " Jam";
 }
 
-showUI();
-updateWeekTime();
+tampilkanHistory();
 </script>
 
 </body>
